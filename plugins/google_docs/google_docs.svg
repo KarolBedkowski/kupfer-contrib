@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="15.106405"
+   height="16.338806"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="google_docs.svg">
+  <title
+     id="title2833">Google Docs Icon</title>
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient3741"
+       inkscape:collect="always">
+      <stop
+         id="stop3743"
+         offset="0"
+         style="stop-color:#dceafe;stop-opacity:1" />
+      <stop
+         id="stop3745"
+         offset="1"
+         style="stop-color:#ffffff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3866">
+      <stop
+         style="stop-color:#dceafe;stop-opacity:1"
+         offset="0"
+         id="stop3868" />
+      <stop
+         style="stop-color:#e6e6e6;stop-opacity:0;"
+         offset="1"
+         id="stop3870" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3846">
+      <stop
+         id="stop3858"
+         offset="0"
+         style="stop-color:#3080bf;stop-opacity:1" />
+      <stop
+         style="stop-color:#beeffe;stop-opacity:1"
+         offset="1"
+         id="stop3850" />
+    </linearGradient>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective10" />
+    <inkscape:perspective
+       id="perspective2884"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3846"
+       id="linearGradient3852"
+       x1="16.162441"
+       y1="20.475571"
+       x2="12.816788"
+       y2="17.286512"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-5.8125,-9.0625)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3866"
+       id="linearGradient3872"
+       x1="14.457419"
+       y1="18.493631"
+       x2="8.2613821"
+       y2="11.264923"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-5.8125,-9.0625)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3846"
+       id="linearGradient2961"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-5.8125,-9.0625)"
+       x1="16.162441"
+       y1="20.475571"
+       x2="12.816788"
+       y2="17.286512" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3741"
+       id="linearGradient2967"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-5.8125,-9.0625)"
+       x1="14.457419"
+       y1="18.493631"
+       x2="8.2613821"
+       y2="11.264923" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="25.267327"
+     inkscape:cx="10.15625"
+     inkscape:cy="6"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1413"
+     inkscape:window-height="885"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Google Docs Icon</dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
+        <dc:date>2010-01-30</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Karol Będkowski</dc:title>
+          </cc:Agent>
+        </dc:creator>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-0.38392481,-0.29357052)">
+    <path
+       style="fill:url(#linearGradient2967);fill-opacity:1;stroke:none"
+       d="M 0.98140021,0.84364242 1.1444538,13.779228 12.123396,13.942282 12.177748,4.159066 8.971027,0.89799362 0.98140021,0.84364242 z"
+       id="path3864" />
+    <path
+       style="fill:none;stroke:#d2ddeb;stroke-width:1px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       d="m 7.803571,0.97825102 0,3.79464298 4.196429,0 0,0.08928"
+       id="path3828" />
+    <path
+       style="fill:none;stroke:#506a8a;stroke-width:1px;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 0.89363691,13.852861 11.955357,13.880041 12.133928,3.969327"
+       id="path3038"
+       sodipodi:nodetypes="ccc" />
+    <path
+       style="fill:none;stroke:#c3cdda;stroke-width:1px;stroke-linecap:square;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 0.88783481,13.852693 -0.00391,-12.91908508 7.88702939,0"
+       id="path3036"
+       sodipodi:nodetypes="ccc" />
+    <rect
+       style="fill:url(#linearGradient2961);fill-opacity:1;stroke:#0065a5;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       id="rect3830"
+       width="9.280777"
+       height="9.4386129"
+       x="5.7095528"
+       y="6.6937647"
+       ry="1.9600372" />
+    <path
+       style="fill:#ffffff;stroke:#ffffff;stroke-width:1px;stroke-linecap:square;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 8.676876,9.913626 4.514119,0"
+       id="path3832" />
+    <path
+       style="fill:#ffffff;stroke:#ffffff;stroke-width:1px;stroke-linecap:square;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 8.803145,11.933931 4.293148,0"
+       id="path3834" />
+    <path
+       style="fill:#ffffff;stroke:#ffffff;stroke-width:1px;stroke-linecap:square;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 8.708443,13.891102 2.525381,0"
+       id="path3836" />
+    <path
+       style="fill:#000000;fill-opacity:0;stroke:#9caabb;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 8.917604,0.79357052 12.141922,3.97871"
+       id="path3860"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:#506a8a;fill-opacity:1;stroke:none"
+       d="m 11.632813,4.174683 0.859375,-0.550782 -0.859375,0.992188 0,-0.441406 z"
+       id="path3874"
+       sodipodi:nodetypes="cccc" />
+    <path
+       style="fill:#c3cdda;fill-opacity:1;stroke:none"
+       d="M 9.261719,0.43640142 8.847656,1.432495 8.234375,0.83093272 9.261719,0.43640142 z"
+       id="path3878"
+       sodipodi:nodetypes="cccc" />
+  </g>
+</svg>
