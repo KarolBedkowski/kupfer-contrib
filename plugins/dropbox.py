@@ -4,7 +4,7 @@ from __future__ import with_statement
 __kupfer_name__ = _("Dropbox")
 __kupfer_actions__ = ("GetPublicUrl", "LinkToPublicAndGetUrl")
 __description__ = _("Dropbox actions")
-__version__ = "2010-05-15"
+__version__ = "2011-04-04"
 __author__ = "Karol Będkowski <karol.bedkowski@gmail.com>"
 
 
@@ -15,7 +15,6 @@ from contextlib import closing
 
 from kupfer.obj.base import Action
 from kupfer.obj.objects import FileLeaf, UrlLeaf, TextLeaf
-from kupfer.obj.special import ErrorLeaf
 from kupfer import pretty
 
 _SOCKET_COMMAND = os.path.expanduser("~/.dropbox/command_socket")
@@ -115,14 +114,14 @@ class GetPublicUrl(Action):
 		try:
 			link = _Dropbox.get_public_url(leaf.object)
 		except DropboxError, err:
-			return ErrorLeaf(_('Error getting url'), str(err))
+			return TextLeaf(_('Error getting url'), str(err))
 		except NoDropboxRunning:
-			return ErrorLeaf(_("Running Dropbox not found"),
+			return TextLeaf(_("Running Dropbox not found"),
 					_("Please start Dropbox daemon"))
 		else:
 			if link:
 				return UrlLeaf(link, link)
-		return ErrorLeaf(_('Unknown Dropbox error...'))
+		return TextLeaf(_('Unknown Dropbox error...'))
 
 	def has_result(self):
 		return True
@@ -154,19 +153,19 @@ class LinkToPublicAndGetUrl(Action):
 			try:
 				os.symlink(leaf.object, dest)
 			except IOError, err:
-				return ErrorLeaf(_("Error creating link to file"), str(err))
+				return TextLeaf(_("Error creating link to file: %s") % str(err))
 		if os.path.exists(dest):
 			try:
 				link = _Dropbox.get_public_url(dest)
 			except DropboxError, err:
-				return ErrorLeaf(_('Error getting url'), str(err))
+				return TextLeaf(_('Error getting url: %s') % str(err))
 			except NoDropboxRunning:
-				return ErrorLeaf(_("Running Dropbox not found"),
+				return TextLeaf(_("Running Dropbox not found"),
 					_("Please start Dropbox daemon"))
 			else:
 				if link:
 					return UrlLeaf(link, link)
-		return ErrorLeaf(_('Unknown Dropbox error...'))
+		return TextLeaf(_('Unknown Dropbox error...'))
 
 	def has_result(self):
 		return True
