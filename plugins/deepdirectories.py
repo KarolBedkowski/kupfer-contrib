@@ -11,6 +11,8 @@ Changes:
 	2012-06-08 - init
 	2012-06-09:
 		+ max depth; fix source name
+	2012-10-08:
+		* fix: errors when no one configured directories exists
 
 '''
 
@@ -40,7 +42,7 @@ MAX_DEPTH = 10
 
 class DeepDirSource(sources.FileSource):
 	def __init__(self, name=_("Deep Directories")):
-		sources.FileSource.__init__(self, self._get_dirs(),
+		sources.FileSource.__init__(self, self._get_dirs() or [''],
 				min(__kupfer_settings__['depth'], MAX_DEPTH))
 		self.name = name
 
@@ -50,6 +52,8 @@ class DeepDirSource(sources.FileSource):
 
 	def get_items(self):
 		self.dirlist = self._get_dirs()
+		if not self.dirlist:
+			return []
 		self.depth = min(__kupfer_settings__['depth'], MAX_DEPTH)
 		return sources.FileSource.get_items(self)
 
