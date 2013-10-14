@@ -3,6 +3,7 @@
 __kupfer_name__ = _("Calibre")
 __kupfer_sources__ = ("LibrariesSource", "AllBooksSource", "AuthorsSource",
 		"SeriesSource")
+__kupfer_actions__ = ("OpenLibrary", "AddToLibrary")
 __description__ = _("Book in Calibre Library")
 __version__ = "2013-08-08"
 __author__ = "Karol Będkowski <karol.bedkowski@gmail.com>"
@@ -11,6 +12,7 @@ __author__ = "Karol Będkowski <karol.bedkowski@gmail.com>"
 Changes:
 	2013-08-08: init
 	2013-10-14: read libraries from gui.json
+		+OpenLibrary, AddToLibrary actions
 '''
 
 import os
@@ -25,7 +27,8 @@ except ImportError:
 	json_decoder = json.loads
 
 
-from kupfer.objects import Source, FileLeaf, Leaf, SourceLeaf
+from kupfer import utils
+from kupfer.objects import Source, FileLeaf, Leaf, SourceLeaf, Action
 from kupfer.obj.helplib import FilesystemWatchMixin
 from kupfer.obj.apps import AppLeafContentMixin
 from kupfer.obj.fileactions import Open
@@ -34,6 +37,8 @@ _HISTORY_FILE = '~/.config/calibre/history.plist'
 _GUI_JSON_FILE = '~/.config/calibre/gui.json'
 _METADATA_FILE = 'metadata.db'
 _CALIBRE_GLOBAL = '~/.config/calibre/global.py'
+_EBOOK_EXTENSIONS = ('epub', 'pdf', 'mobi', 'prc', 'txt', 'doc', 'rtf',
+		'html', 'chm')
 
 
 def get_libraries():
@@ -181,6 +186,23 @@ class SeriesLeaf(Leaf):
 
 	def content_source(self, alternate=False):
 		return SeriesContentSource(self.object, self.name, self.library_path)
+
+
+class LibraryLeaf(Leaf):
+	def __init__(self, library_path):
+		Leaf.__init__(self, library_path, os.path.split(library_path)[-1])
+
+	def get_description(self):
+		return _("Library: %s") % self.object
+
+
+class SimpleLibrariesSource(Source):
+	def __init__(self):
+		Source.__init__(self, _("Calibre Libraries"))
+
+	def get_items(self):
+		for library in get_libraries():
+			yield LibraryLeaf(library)
 
 
 class LibraryBooksSource(Source):
@@ -383,3 +405,47 @@ class SeriesSource(Source, FilesystemWatchMixin):
 
 	def repr_key(self):
 		return repr(self.library)
+
+
+class OpenLibrary(Action):
+	""" Open Calibre Library"""
+	def __init__(self):
+		Action.__init__(self, _("Open in Calibre"))
+
+	def activate(self, leaf):
+		utils.spawn_async(["calibre",
+				"--with-library=" + str(leaf.object.library_path)])
+
+	def item_types(self):
+		yield SourceLeaf
+
+	def valid_for_item(self, item):
+		return isinstance(item.object, LibraryBooksSource)
+
+
+class AddToLibrary(Action):
+	"""Add file to Calibre library."""
+	def __init__(self):
+		Action.__init__(self, _("Add to Calibre Library..."))
+
+	def activate(self, leaf, iobj):
+		utils.spawn_async(["calibre",
+			"--with-library=" + str(iobj.object),
+			leaf.object])
+
+	def requires_object(self):
+		return True
+
+	def item_types(self):
+		yield FileLeaf
+
+	def valid_for_item(self, item):
+		ext = os.path.splitext(item.object)[-1]
+		print ext
+		return ext and ext[1:] in _EBOOK_EXTENSIONS
+
+	def object_source(self, for_item=None):
+		return SimpleLibrariesSource()
+
+	def object_types(self):
+		yield LibraryLeaf
