@@ -10,12 +10,20 @@ __author__ = "Karol Będkowski <karol.bedkowski@gmail.com>"
 '''
 Changes:
 	2013-08-08: init
+	2013-10-14: read libraries from gui.json
 '''
 
 import os
-from xml.etree import cElementTree as ElementTree
 import sqlite3
 from contextlib import closing
+
+try:
+	import cjson
+	json_decoder = cjson.decode
+except ImportError:
+	import json
+	json_decoder = json.loads
+
 
 from kupfer.objects import Source, FileLeaf, Leaf, SourceLeaf
 from kupfer.obj.helplib import FilesystemWatchMixin
@@ -23,55 +31,24 @@ from kupfer.obj.apps import AppLeafContentMixin
 from kupfer.obj.fileactions import Open
 
 _HISTORY_FILE = '~/.config/calibre/history.plist'
+_GUI_JSON_FILE = '~/.config/calibre/gui.json'
 _METADATA_FILE = 'metadata.db'
 _CALIBRE_GLOBAL = '~/.config/calibre/global.py'
 
 
-def plist_to_dict(nodes):
-	key = None
-	for node in nodes:
-		if node.tag == 'key':
-			key = node.text
-		elif node.tag == 'array':
-			if key:
-				yield key, [cnode.text for cnode in node.getchildren()]
-				key = None
-
-
-def get_default_library_path():
-	global_path = os.path.expanduser(_CALIBRE_GLOBAL)
-	if not os.path.isfile(global_path):
-		return None
-	with open(global_path, 'r') as global_file:
-		for row in global_file:
-			if not row.startswith('library_path = '):
-				continue
-			try:
-				library_path = str(eval(row[15:]))
-				return library_path if os.path.isdir(library_path) else None
-			except:
-				pass
-	return None
-
-
 def get_libraries():
-	default_library = get_default_library_path()
-	if default_library:
-		yield default_library
-
-	hist_file_path = os.path.expanduser(_HISTORY_FILE)
-	if not os.path.exists(hist_file_path):
+	gui_json_file = os.path.expanduser(_GUI_JSON_FILE)
+	if not os.path.isfile(gui_json_file):
 		return
-	print 'reading', hist_file_path
-	try:
-		tree = ElementTree.parse(hist_file_path)
-		history = dict(plist_to_dict(tree.find('dict')))
-		if not 'lineedit_history_choose_library_dialog' in history:
+	with open(gui_json_file) as f:
+		root = json_decoder(f.read().decode("UTF-8"))
+		if not root:
 			return
-		for item in history['lineedit_history_choose_library_dialog']:
-			yield item
-	except StandardError, err:
-		print err
+	library_usage_stats = root.get('library_usage_stats')
+	if library_usage_stats:
+		for library in library_usage_stats.iterkeys():
+			if os.path.exists(library):
+				yield library
 
 
 def get_books_from_library(library_path):
