@@ -68,8 +68,9 @@ def get_books_from_library(library_path):
 			"from books b "
 			"order by sort, format")
 		for book_id, title, author, path, default_book in curs:
-			yield BookLeaf(default_book, book_id, title, author,
-					os.path.join(library_path, path), metadata_file)
+			if default_book:
+				yield BookLeaf(default_book, book_id, title, author,
+						os.path.join(library_path, path), metadata_file)
 
 
 def get_books_from_library_by_author(library_path, author_id):
