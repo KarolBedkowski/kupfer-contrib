@@ -1,117 +1,165 @@
-# -*- coding: UTF-8 -*-
-
-__kupfer_name__ = _("Calibre")
-__kupfer_sources__ = ("LibrariesSource", "AllBooksSource", "AuthorsSource",
-                      "SeriesSource")
-__kupfer_actions__ = ("OpenLibrary", "AddToLibrary")
-__description__ = _("Book in Calibre Library")
-__version__ = "2017-02-07"
-__author__ = "Karol Będkowski <karol.bedkowski@gmail.com>"
-'''
+"""
 Changes:
 	2013-08-08: init
 	2013-10-14: read libraries from gui.json
 		+OpenLibrary, AddToLibrary actions
 	2017-02-07: update to Kupfer v300+; Python3
-'''
+"""
 
+__kupfer_name__ = _("Calibre")
+__kupfer_sources__ = (
+    "LibrariesSource",
+    "AllBooksSource",
+    "AuthorsSource",
+    "SeriesSource",
+)
+__kupfer_actions__ = ("OpenLibrary", "AddToLibrary")
+__description__ = _("Book in Calibre Library")
+__version__ = "2017-02-07"
+__author__ = "Karol Będkowski <karol.bedkowski@gmail.com>"
+
+import json
 import os
 import sqlite3
+from pathlib import Path
 from contextlib import closing
+import typing as ty
 
-try:
-    import cjson
-    json_decoder = cjson.decode
-except ImportError:
-    import json
-    json_decoder = json.loads
-
-from kupfer import utils
-from kupfer.objects import Source, FileLeaf, Leaf, SourceLeaf, Action
-from kupfer.obj.helplib import FilesystemWatchMixin
+from kupfer import launch
+from kupfer.obj import Action, FileLeaf, Leaf, Source, SourceLeaf
 from kupfer.obj.apps import AppLeafContentMixin
 from kupfer.obj.fileactions import Open
-
-_HISTORY_FILE = '~/.config/calibre/history.plist'
-_GUI_JSON_FILE = '~/.config/calibre/gui.json'
-_METADATA_FILE = 'metadata.db'
-_CALIBRE_GLOBAL = '~/.config/calibre/global.py'
-_EBOOK_EXTENSIONS = ('epub', 'pdf', 'mobi', 'prc', 'txt', 'doc', 'rtf', 'html',
-                     'chm')
+from kupfer.obj.helplib import FilesystemWatchMixin
 
 
-def get_libraries():
-    gui_json_file = os.path.expanduser(_GUI_JSON_FILE)
-    if not os.path.isfile(gui_json_file):
+_HISTORY_FILE = "~/.config/calibre/history.plist"
+_GUI_JSON_FILE = "~/.config/calibre/gui.json"
+_METADATA_FILE = "metadata.db"
+_CALIBRE_GLOBAL = "~/.config/calibre/global.py"
+_EBOOK_EXTENSIONS = (
+    "epub",
+    "pdf",
+    "mobi",
+    "prc",
+    "txt",
+    "doc",
+    "rtf",
+    "html",
+    "chm",
+)
+
+
+def get_libraries() -> ty.Iterator[Path]:
+    gui_json_file = Path(_GUI_JSON_FILE).expanduser()
+    if not gui_json_file.is_file():
         return
-    with open(gui_json_file) as f:
-        root = json_decoder(f.read())
+
+    with gui_json_file.open("rb") as jfile:
+        root = json.load(jfile)
         if not root:
             return
-    library_usage_stats = root.get('library_usage_stats')
+
+    library_usage_stats = root.get("library_usage_stats")
     if library_usage_stats:
         for library in library_usage_stats.keys():
-            if os.path.exists(library):
-                yield library
+            libpath = Path(library)
+            if libpath.exists():
+                yield libpath
 
 
 def get_books_from_library(library_path):
-    metadata_file = os.path.join(library_path, _METADATA_FILE)
-    if not os.path.isfile(metadata_file):
+    metadata_file = Path(library_path, _METADATA_FILE)
+    if not metadata_file.is_file():
         return
+
     with closing(sqlite3.connect(metadata_file, timeout=1)) as conn:
         curs = conn.cursor()
-        curs.execute("select b.id, sort, author_sort, path, "
-                     "    (select name || '.' || lower(format) from data d "
-                     "       where book=b.id limit 1) as format "
-                     "from books b "
-                     "order by sort, format")
-        for book_id, title, author, path, default_book in curs:
+        curs.execute(
+            "select b.id, sort, author_sort, path, "
+            "    (select name || '.' || lower(format) from data d "
+            "       where book=b.id limit 1) as format, "
+            "     (select count(*) from data where book=b.id) as fnum "
+            "from books b "
+            "order by sort, format"
+        )
+        for book_id, title, author, path, default_book, fnum in curs:
             if default_book:
-                yield BookLeaf(default_book, book_id, title, author,
-                               os.path.join(library_path, path), metadata_file)
+                yield BookLeaf(
+                    default_book,
+                    book_id,
+                    title,
+                    author,
+                    os.path.join(library_path, path),
+                    metadata_file,
+                    fnum,
+                )
 
 
 def get_books_from_library_by_author(library_path, author_id):
-    metadata_file = os.path.join(library_path, _METADATA_FILE)
-    if not os.path.isfile(metadata_file):
+    metadata_file = Path(library_path, _METADATA_FILE)
+    if not metadata_file.is_file():
         return
+
     with closing(sqlite3.connect(metadata_file, timeout=1)) as conn:
         curs = conn.cursor()
-        curs.execute("select b.id, sort, author_sort, path, "
-                     "    (select name || '.' || lower(format) from data d "
-                     "       where book=b.id limit 1) as format "
-                     "from books_authors_link a join books b "
-                     "on a.book = b.id "
-                     "where a.author=? "
-                     "order by sort, format", (author_id, ))
-        for book_id, title, author, path, default_book in curs:
-            yield BookLeaf(default_book, book_id, title, author,
-                           os.path.join(library_path, path), metadata_file)
+        curs.execute(
+            "select b.id, sort, author_sort, path, "
+            "    (select name || '.' || lower(format) from data d "
+            "       where book=b.id limit 1) as format, "
+            "     (select count(*) from data where book=b.id) as fnum "
+            "from books_authors_link a join books b "
+            "on a.book = b.id "
+            "where a.author=? "
+            "order by sort, format",
+            (author_id,),
+        )
+        for book_id, title, author, path, default_book, fnum in curs:
+            yield BookLeaf(
+                default_book,
+                book_id,
+                title,
+                author,
+                os.path.join(library_path, path),
+                metadata_file,
+                fnum,
+            )
 
 
 def get_books_from_library_by_series(library_path, series_id):
-    metadata_file = os.path.join(library_path, _METADATA_FILE)
-    if not os.path.isfile(metadata_file):
+    metadata_file = Path(library_path, _METADATA_FILE)
+    if not metadata_file.is_file():
         return
+
     with closing(sqlite3.connect(metadata_file, timeout=1)) as conn:
         curs = conn.cursor()
-        curs.execute("select b.id, sort, author_sort, path, "
-                     "    (select name || '.' || lower(format) from data d "
-                     "       where book=b.id limit 1) as format "
-                     "from books_series_link a join books b "
-                     "on a.book = b.id "
-                     "where a.series=? "
-                     "order by sort, format", (series_id, ))
-        for book_id, title, author, path, default_book in curs:
-            yield BookLeaf(default_book, book_id, title, author,
-                           os.path.join(library_path, path), metadata_file)
+        curs.execute(
+            "select b.id, sort, author_sort, path, "
+            "    (select name || '.' || lower(format) from data d "
+            "       where book=b.id limit 1) as format, "
+            "     (select count(*) from data where book=b.id) as fnum "
+            "from books_series_link a join books b "
+            "on a.book = b.id "
+            "where a.series=? "
+            "order by sort, format",
+            (series_id,),
+        )
+        for book_id, title, author, path, default_book, fnum in curs:
+            yield BookLeaf(
+                default_book,
+                book_id,
+                title,
+                author,
+                os.path.join(library_path, path),
+                metadata_file,
+                fnum,
+            )
 
 
 def get_authors_from_library(library_path):
-    metadata_file = os.path.join(library_path, _METADATA_FILE)
-    if not os.path.isfile(metadata_file):
+    metadata_file = Path(library_path, _METADATA_FILE)
+    if not metadata_file.is_file():
         return
+
     with closing(sqlite3.connect(metadata_file, timeout=1)) as conn:
         curs = conn.cursor()
         curs.execute("select id, name, sort from authors order by sort")
@@ -120,9 +168,10 @@ def get_authors_from_library(library_path):
 
 
 def get_series_from_library(library_path):
-    metadata_file = os.path.join(library_path, _METADATA_FILE)
-    if not os.path.isfile(metadata_file):
+    metadata_file = Path(library_path, _METADATA_FILE)
+    if not metadata_file.is_file():
         return
+
     with closing(sqlite3.connect(metadata_file, timeout=1)) as conn:
         curs = conn.cursor()
         curs.execute("select id, name, sort from series order by sort")
@@ -130,34 +179,47 @@ def get_series_from_library(library_path):
             yield SeriesLeaf(series_id, name, name_sort, library_path)
 
 
-def _get_dirs_to_monitor():
+def _get_dirs_to_monitor() -> ty.Iterable[str]:
     dirs = []
-    hist_file_path = os.path.expanduser(_HISTORY_FILE)
-    if os.path.exists(hist_file_path):
-        dirs.append(os.path.dirname(hist_file_path))
+    hist_file_path = Path(_HISTORY_FILE).expanduser()
+    if hist_file_path.exists():
+        dirs.append(hist_file_path.parent)
+
     dirs.extend(get_libraries())
-    return dirs
+    return map(str, dirs)
 
 
-class BookLeaf(Leaf):
-    def __init__(self, default_book, book_id, title, author, path,
-                 metadata_file):
-        Leaf.__init__(self, os.path.join(path, default_book), title)
+class BookLeaf(FileLeaf):
+    serializable = 2
+
+    def __init__(
+        self,
+        default_book,
+        book_id,
+        title,
+        author,
+        path,
+        metadata_file,
+        num_formats,
+    ):
+        super().__init__(os.path.join(path, default_book), title)
         self.book_id = book_id
         self.author = author
         self.path = path
         self.metadata_file = metadata_file
         self.kupfer_add_alias(path)
+        self.num_formats = num_formats
 
     def get_description(self):
         return self.author
 
     def has_content(self):
-        return True
+        return self.num_formats > 1
 
     def content_source(self, alternate=False):
-        return BookContentSource(self.book_id, self.name, self.path,
-                                 self.metadata_file)
+        return BookContentSource(
+            self.book_id, self.name, self.path, self.metadata_file
+        )
 
     def get_actions(self):
         yield Open()
@@ -219,13 +281,12 @@ class LibraryBooksSource(Source):
 
     def get_items(self):
         yield SourceLeaf(
-            AuthorsSource(
-                self.library_path, name=_("<Calibre Authors>")))
+            AuthorsSource(self.library_path, name=_("<Calibre Authors>"))
+        )
         yield SourceLeaf(
-            SeriesSource(
-                self.library_path, name=_("<Calibre Series>")))
-        for book in get_books_from_library(self.library_path):
-            yield book
+            SeriesSource(self.library_path, name=_("<Calibre Series>"))
+        )
+        yield from get_books_from_library(self.library_path)
 
     def provides(self):
         yield BookLeaf
@@ -242,8 +303,9 @@ class AuthorContentSource(Source):
         return (self.library_path, self.author_id)
 
     def get_items(self):
-        return get_books_from_library_by_author(self.library_path,
-                                                self.author_id)
+        return get_books_from_library_by_author(
+            self.library_path, self.author_id
+        )
 
     def should_sort_lexically(self):
         return True
@@ -262,8 +324,9 @@ class SeriesContentSource(Source):
         return (self.library_path, self.series_id)
 
     def get_items(self):
-        return get_books_from_library_by_series(self.library_path,
-                                                self.series_id)
+        return get_books_from_library_by_series(
+            self.library_path, self.series_id
+        )
 
     def should_sort_lexically(self):
         return True
@@ -277,25 +340,22 @@ class AllBooksSource(Source, FilesystemWatchMixin):
         Source.__init__(self, name=_("Calibre Books"))
 
     def initialize(self):
-        dirs = []
-        hist_file_path = os.path.expanduser(_HISTORY_FILE)
-        if os.path.exists(hist_file_path):
-            dirs.append(os.path.dirname(hist_file_path))
-        dirs.extend(get_libraries())
-        if dirs:
+        if dirs := list(_get_dirs_to_monitor()):
             self.monitor_token = self.monitor_directories(*dirs)
 
     def monitor_include_file(self, gfile):
-        return gfile and gfile.get_basename() in ('history.plist', 'global.py',
-                                                  _METADATA_FILE)
+        return gfile and gfile.get_basename() in (
+            "history.plist",
+            "global.py",
+            _METADATA_FILE,
+        )
 
     def get_description(self):
         return "All Calibre Books"
 
     def get_items(self):
         for library in get_libraries():
-            for book in get_books_from_library(library):
-                yield book
+            yield from get_books_from_library(library)
 
     def should_sort_lexically(self):
         return True
@@ -305,19 +365,19 @@ class AllBooksSource(Source, FilesystemWatchMixin):
 
 
 class LibrariesSource(AppLeafContentMixin, Source, FilesystemWatchMixin):
-    appleaf_content_id = 'calibre-gui'
+    appleaf_content_id = "calibre-gui"
 
     def __init__(self, name=_("Calibre Libraries")):
         Source.__init__(self, name)
 
     def initialize(self):
-        hist_file_path = os.path.expanduser(_HISTORY_FILE)
-        if os.path.exists(hist_file_path):
-            calibre_config_dir = os.path.dirname(hist_file_path)
+        hist_file_path = Path(_HISTORY_FILE).expanduser()
+        if hist_file_path.exists():
+            calibre_config_dir = str(hist_file_path.parent)
             self.monitor_token = self.monitor_directories(calibre_config_dir)
 
     def monitor_include_file(self, gfile):
-        return gfile and gfile.get_basename() in ('history.plist', 'global.py')
+        return gfile and gfile.get_basename() in ("history.plist", "global.py")
 
     def get_items(self):
         yield SourceLeaf(AllBooksSource())
@@ -343,12 +403,16 @@ class BookContentSource(Source):
     def get_items(self):
         with closing(sqlite3.connect(self.metadata_file, timeout=1)) as conn:
             curs = conn.cursor()
-            curs.execute("select format, name from data "
-                         "where book=? "
-                         "order by format", (self.book_id, ))
+            curs.execute(
+                "select format, name from data "
+                "where book=? "
+                "order by format",
+                (self.book_id,),
+            )
             for format_, name in curs:
                 yield FileLeaf(
-                    os.path.join(self.path, name + "." + format_.lower()))
+                    os.path.join(self.path, name + "." + format_.lower())
+                )
 
     def repr_key(self):
         return (self.book_id, self.path)
@@ -368,18 +432,16 @@ class AuthorsSource(Source, FilesystemWatchMixin):
     def initialize(self):
         if self.library:
             return
-        dirs = _get_dirs_to_monitor()
-        if dirs:
+
+        if dirs := list(_get_dirs_to_monitor()):
             self.monitor_token = self.monitor_directories(*dirs)
 
     def get_items(self):
         if self.library:
-            for author in get_authors_from_library(self.library):
-                yield author
+            yield from get_authors_from_library(self.library)
         else:
             for library in get_libraries():
-                for author in get_authors_from_library(library):
-                    yield author
+                yield from get_authors_from_library(library)
 
     def repr_key(self):
         return repr(self.library)
@@ -393,32 +455,31 @@ class SeriesSource(Source, FilesystemWatchMixin):
     def initialize(self):
         if self.library:
             return
-        dirs = _get_dirs_to_monitor()
-        if dirs:
+
+        if dirs := list(_get_dirs_to_monitor()):
             self.monitor_token = self.monitor_directories(*dirs)
 
     def get_items(self):
         if self.library:
-            for series in get_series_from_library(self.library):
-                yield series
+            yield from get_series_from_library(self.library)
         else:
             for library in get_libraries():
-                for series in get_series_from_library(library):
-                    yield series
+                yield from get_series_from_library(library)
 
     def repr_key(self):
         return repr(self.library)
 
 
 class OpenLibrary(Action):
-    """ Open Calibre Library"""
+    """Open Calibre Library"""
 
     def __init__(self):
         Action.__init__(self, _("Open in Calibre"))
 
     def activate(self, leaf):
-        utils.spawn_async(
-            ["calibre", "--with-library=" + str(leaf.object.library_path)])
+        launch.spawn_async(
+            ["calibre", "--with-library=" + str(leaf.object.library_path)]
+        )
 
     def item_types(self):
         yield SourceLeaf
@@ -434,8 +495,9 @@ class AddToLibrary(Action):
         Action.__init__(self, _("Add to Calibre Library..."))
 
     def activate(self, leaf, iobj):
-        utils.spawn_async(
-            ["calibre", "--with-library=" + str(iobj.object), leaf.object])
+        launch.spawn_async(
+            ["calibre", "--with-library=" + str(iobj.object), leaf.object]
+        )
 
     def requires_object(self):
         return True
